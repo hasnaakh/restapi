@@ -1,5 +1,5 @@
-const pool = require('../../db');
-const queries = require('./queries');
+const pool = require('../../../db');
+const queries = require('../queries');
 
 const getUsers = (req, res) => {
     pool.query(queries.getUsers, (error, results) => {
@@ -42,7 +42,6 @@ const addUser = (req, res) => {
 const addStudent = (req, res) => {
     const { username, email, password, phone } = req.body;
   
-    // Check if email exists
     pool.query(queries.checkEmailExists, [email], (error, results) => {
       if (error) {
         console.error('Error checking email:', error);
@@ -55,11 +54,9 @@ const addStudent = (req, res) => {
         return;
       }
   
-      // Log query and parameters before execution
       console.log('Query:', queries.addStudent);
       console.log('Parameters:', [username, email, password, phone]);
   
-      // Add student to the database with the role set as 'student'
       pool.query(queries.addStudent, [username, email, password, phone], (error, results) => {
         if (error) {
           console.error('Error adding student:', error.message);
@@ -75,7 +72,6 @@ const addStudent = (req, res) => {
   const addDoctor = (req, res) => {
     const { username, email, password, phone } = req.body;
   
-    // Check if email exists
     pool.query(queries.checkEmailExists, [email], (error, results) => {
       if (error) {
         console.error('Error checking email:', error);
@@ -88,7 +84,6 @@ const addStudent = (req, res) => {
         return;
       }
   
-      // Log query and parameters before execution
       console.log('Query:', queries.addDoctor);
       console.log('Parameters:', [username, email, password, phone]);
   
@@ -104,7 +99,7 @@ const addStudent = (req, res) => {
     });
   };
 
-const removeUser = (req, res) => {
+/*const removeUser = (req, res) => {
     const UID = parseInt(req.params.UID);
 
     //check user exist
@@ -120,9 +115,63 @@ const removeUser = (req, res) => {
             res.status(200).send("User removed succefully.");
         });
     });
+};*/
+
+const removeStudent = (req, res) => {
+    const UID = parseInt(req.params.UID);
+
+    pool.query(queries.getUserById, [UID], (error, results) => {
+        if (error) {
+            console.error('Error fetching user:', error);
+            res.status(500).send("An error occurred while fetching the user.");
+            return;
+        }
+
+        const user = results.rows[0];
+        if (!user || user.role !== 'student') {
+            res.status(404).send("Student does not exist in the database.");
+            return;
+        }
+
+        pool.query(queries.removeUser, [UID], (error, results) => {
+            if (error) {
+                console.error('Error removing student:', error);
+                res.status(500).send("An error occurred while removing the student.");
+                return;
+            }
+            res.status(200).send("Student removed successfully.");
+        });
+    });
 };
 
-const updateUser = (req, res) => {
+const removeDoctor = (req, res) => {
+    const UID = parseInt(req.params.UID);
+
+    pool.query(queries.getUserById, [UID], (error, results) => {
+        if (error) {
+            console.error('Error fetching user:', error);
+            res.status(500).send("An error occurred while fetching the user.");
+            return;
+        }
+
+        const user = results.rows[0];
+        if (!user || user.role !== 'doctor') {
+            res.status(404).send("Doctor does not exist in the database.");
+            return;
+        }
+
+        pool.query(queries.removeUser, [UID], (error, results) => {
+            if (error) {
+                console.error('Error removing doctor:', error);
+                res.status(500).send("An error occurred while removing the doctor.");
+                return;
+            }
+            res.status(200).send("Doctor removed successfully.");
+        });
+    });
+};
+
+/*const updateUser = (req, res) => {
     const UID = parseInt(req.params.UID);
     const { username } = req.body;
 
@@ -137,6 +186,46 @@ const updateUser = (req, res) => {
             res.status(200).send("User updated successfully");
         });
     });
+};*/
+
+const updateUser = (req, res) => {
+    const UID = parseInt(req.params.UID);
+    const updates = req.body;
+
+    // Check if the user exists
+    pool.query(queries.getUserById, [UID], (error, results) => {
+        if (error) {
+            console.error('Error fetching user:', error);
+            res.status(500).send("An error occurred while fetching the user.");
+            return;
+        }
+
+        const noUserFound = !results.rows.length;
+        if (noUserFound) {
+            res.status(404).send("User does not exist in the database");
+            return;
+        }
+
+        try {
+            const { query, values } = queries.generateUpdateQuery('users', updates);
+            values.push(UID); 
+
+            console.log('Update Query:', query);
+            console.log('Values:', values);
+
+            pool.query(query, values, (error, results) => {
+                if (error) {
+                    console.error('Error updating user:', error);
+                    res.status(500).send("An error occurred while updating the user.");
+                    return;
+                }
+                res.status(200).send("User updated successfully.");
+            });
+        } catch (error) {
+            console.error('Error generating update query:', error);
+            res.status(400).send(error.message);
+        }
+    });
 };
 
 module.exports = {
@@ -146,6 +235,8 @@ module.exports = {
     /*addUser,*/
     addStudent,
     addDoctor,
-    removeUser,
+    //removeUser,
+    removeStudent,
+    removeDoctor,
     updateUser,
 };
