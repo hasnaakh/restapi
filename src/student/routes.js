@@ -10,8 +10,11 @@ router.get("/doctors", controller.getDoctors);
 router.post("/addstudent", controller.addStudent);
 router.post("/adddoctor", controller.addDoctor);
 
-router.get("/:UID", controller.getUserById);
-router.put("/:UID", controller.updateUser);
+router.get("/users/:UID", controller.getUserById);
+
+//router.put("/:UID", controller.updateUser);
+router.put("/students/:UID", controller.updateStudent);
+router.put("/doctors/:UID", controller.updateDoctor);
 
 router.delete("/students/:UID", controller.removeStudent);
 router.delete("/doctors/:UID", controller.removeDoctor);

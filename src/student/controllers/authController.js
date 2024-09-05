@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs'); // For password hashing and comparison
+const bcrypt = require('bcrypt'); // For password hashing and comparison
 const pool = require('../../../db');
 
 // Render login page (optional, if using server-side rendering)
@@ -22,10 +22,14 @@ exports.login = async (req, res) => {
         // Compare provided password with hashed password in the database
        /* const match = await bcrypt.compare(password, user.password);
         if (!match) {*/
-        if (password !== user.password) {
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
+        /*if (password !== user.password) {
 
             return res.status(401).json({ message: 'Invalid  password' });
-        }
+        }*/
 
         // Successful login, create session
         req.session.userId = user.id; // Save user ID in session
