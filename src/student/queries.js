@@ -29,6 +29,29 @@ const generateUpdateQuery = (table, updates, idField = 'UID') => {
 };
 
 
+//courses
+const getCourses = "SELECT * FROM courses ";
+const addCourse = "INSERT INTO courses (code, name, description) VALUES ($1, $2, $3)";
+const getCourseByName = "SELECT * FROM courses WHERE neme = $1";
+const getCourseById = "SELECT * FROM courses WHERE cid = $1";
+const getCourseBycode= "SELECT * FROM courses WHERE code = $1";
+const removeCourse = "DELETE FROM courses WHERE cid = $1";
+
+const generateUpdateCourseQuery = (table, updates, idField = 'cid') => {
+    const fields = Object.keys(updates);
+    const values = Object.values(updates);
+
+    if (fields.length === 0) {
+        throw new Error("No fields provided for update.");
+    }
+
+    // Dynamically construct the SET clause
+    const setClause = fields.map((field, index) => `${field} = $${index + 1}`).join(", ");
+    const query = `UPDATE ${table} SET ${setClause} WHERE ${idField} = $${fields.length + 1}`;
+
+    // Return the query and the values array including the ID at the end
+    return { query, values };
+};
 
 
 module.exports = {
@@ -42,4 +65,12 @@ module.exports = {
     removeUser,
     //updateUser,
     generateUpdateQuery,
+    //courses
+    getCourseById,
+    getCourses,
+    getCourseBycode,
+    getCourseByName,
+    addCourse,
+    removeCourse,
+   generateUpdateCourseQuery,
 };

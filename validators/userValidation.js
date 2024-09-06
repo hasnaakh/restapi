@@ -2,10 +2,10 @@ const Joi = require('joi');
 
 const userCreationSchema = Joi.object({
     username: Joi.string()
-        .pattern(new RegExp('^[a-zA-Z]{3,}[a-zA-Z0-9]*$'))
+        .pattern(new RegExp('^[a-zA-Z]{3,}[a-zA-Z0-9 ]*$'))
         .required()
         .messages({
-            'string.pattern.base': 'Username must have at least 3 letters and can include additional letters or numbers.',
+            'string.pattern.base': 'Username must have at least 3 letters and can include additional letters or numbers, and spaces.',
         }),
     email: Joi.string()
         .email({ minDomainSegments: 2, tlds: { allow: ['com'] } })
@@ -27,10 +27,10 @@ const userCreationSchema = Joi.object({
 
 const userUpdateSchema = Joi.object({
     username: Joi.string()
-      .pattern(new RegExp('^[a-zA-Z]{3,}[a-zA-Z0-9]*$'))
+      .pattern(new RegExp('^[a-zA-Z]{3,}[a-zA-Z0-9 ]*$'))
       .optional()
       .messages({
-        'string.pattern.base': 'Username must have at least 3 letters and can include additional letters or numbers.',
+        'string.pattern.base': 'Username must have at least 3 letters and can include additional letters or numbers, and spaces.',
       }),
     email: Joi.string()
       .email({ minDomainSegments: 2, tlds: { allow: ['com'] } })

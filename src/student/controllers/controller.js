@@ -337,6 +337,89 @@ const updateDoctor = async (req, res) => {
         }
 };
 
+//Asmaa
+//Courses
+const getCourses = (req, res) => {
+    pool.query(queries.getCourses, (error, results) => {
+        if (error) throw error;
+        res.status(200).json(results.rows);
+    });
+};
+
+const addCourse = (req, res) => {
+    const { name, code, description } = req.body;        
+        pool.query(queries.addCourse, [code, name, description], (error, results) => {
+            if (error) throw error;
+            res.status(201).send("Course Added Successfully!");
+        });
+};
+
+const removeCourse = (req, res) => {
+    const cid = parseInt(req.params.cid);
+
+    //check course exist
+    pool.query(queries.getCourseById, [cid], (error, results) => {
+        const noCourseFound = !results.rows.length;
+        if(noCourseFound){
+            res.send("Course does not exist in the database");
+        }
+
+        //delete
+        pool.query(queries.removeCourse, [cid], (error, results) => {
+            if (error) throw error;
+            res.status(200).send("Course removed succefully.");
+        });
+    });
+};
+
+const getCourseById = (req, res) => {
+    const cid = parseInt(req.params.cid);
+    pool.query(queries.getCourseById, [cid], (error, results) => {
+        if (error) throw error;
+        res.status(200).json(results.rows);
+    });
+};
+
+const updateCourse = (req, res) => {
+    const cid = parseInt(req.params.cid);
+    const updates = req.body;
+
+    // Check if the user exists
+    pool.query(queries.getCourseById, [cid], (error, results) => {
+        if (error) {
+            console.error('Error fetching course:', error);
+            res.status(500).send("An error occurred while fetching the course.");
+            return;
+        }
+
+        const noCourseFound = !results.rows.length;
+        if (noCourseFound) {
+            res.status(404).send("Course does not exist in the database");
+            return;
+        }
+
+        try {
+            const { query, values } = queries.generateUpdateCourseQuery('courses', updates);
+            values.push(cid); 
+
+            console.log('Update Query:', query);
+            console.log('Values:', values);
+
+            pool.query(query, values, (error, results) => {
+                if (error) {
+                    console.error('Error updating Course:', error);
+                    res.status(500).send("An error occurred while updating the Course.");
+                    return;
+                }
+                res.status(200).send("Course updated successfully.");
+            });
+        } catch (error) {
+            console.error('Error generating update query:', error);
+            res.status(400).send(error.message);
+        }
+    });
+};
+
 
 
 module.exports = {
@@ -352,4 +435,9 @@ module.exports = {
     //updateUser,
     updateStudent,
     updateDoctor,
+    getCourses,
+    getCourseById,
+    addCourse,
+    updateCourse,
+    removeCourse,
 };
