@@ -384,7 +384,6 @@ const updateCourse = (req, res) => {
     const cid = parseInt(req.params.cid);
     const updates = req.body;
 
-    // Check if the user exists
     pool.query(queries.getCourseById, [cid], (error, results) => {
         if (error) {
             console.error('Error fetching course:', error);
@@ -400,15 +399,15 @@ const updateCourse = (req, res) => {
 
         try {
             const { query, values } = queries.generateUpdateCourseQuery('courses', updates);
-            values.push(cid); 
+            values.push(cid); // Add the course ID as the last value
 
             console.log('Update Query:', query);
             console.log('Values:', values);
 
             pool.query(query, values, (error, results) => {
                 if (error) {
-                    console.error('Error updating Course:', error);
-                    res.status(500).send("An error occurred while updating the Course.");
+                    console.error('Error updating Course:', error); // Show the error details
+                    res.status(500).send("An error occurred while updating the Course."); // Temporary log error for debug
                     return;
                 }
                 res.status(200).send("Course updated successfully.");
@@ -419,6 +418,7 @@ const updateCourse = (req, res) => {
         }
     });
 };
+
 
 
 
