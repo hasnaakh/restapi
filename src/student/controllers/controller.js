@@ -2,6 +2,9 @@ const pool = require('../../../db');
 const queries = require('../queries');
 const bcrypt = require('bcrypt'); //for hashing
 const { userCreationSchema, userUpdateSchema } = require('../../../validators/userValidation');
+const { doctorCreationSchema, doctorUpdateSchema  } = require('../../../validators/doctorValidation');
+
+
 
 const getUsers = (req, res) => {
     pool.query(queries.getUsers, (error, results) => {
@@ -16,6 +19,23 @@ const getDoctors = (req, res) => {
         res.status(200).json(results.rows);
     });
 };
+
+const getDoctorDetails = async (req, res) => {
+    try {
+        console.log('Executing query:', queries.getDoctorDetails);
+        const result = await pool.query(queries.getDoctorDetails);
+        
+        if (result.rows.length === 0) {
+            console.log('No doctor details found.');
+        }
+
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error fetching doctor details:', error.message);
+        res.status(500).send(`An error occurred while fetching doctor details: ${error.message}`);
+    }
+};
+
 
 const getUserById = (req, res) => {
     const UID = parseInt(req.params.UID);
@@ -76,13 +96,20 @@ const addStudent = async (req, res) => {
     }
 };
   
+const path = require('path');
 const addDoctor = async (req, res) => {
-    const { username, email, password, phone } = req.body;
+    const { username, email, password, phone, department, contact_info } = req.body;
+    const photo = req.file ? req.file.path : null;
 
     // Validate user input
-    const { error } = userCreationSchema.validate({ username, email, password, phone, role: 'doctor' });
-    if (error) {
-        return res.status(400).send(error.details[0].message);
+    const { error: userError } = userCreationSchema.validate({ username, email, password, phone, role: 'doctor' });
+    if (userError) {
+        return res.status(400).send(userError.details[0].message);
+    }
+
+    const { error: doctorError } = doctorCreationSchema.validate({ photo, department, contact_info });
+    if (doctorError) {
+        return res.status(400).send(doctorError.details[0].message);
     }
 
     try {
@@ -95,9 +122,34 @@ const addDoctor = async (req, res) => {
         const saltRounds = 10; 
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        await pool.query(queries.addDoctor, [username, email, hashedPassword, phone]);
+        console.log('Executing query:', queries.addDoctor);
+        console.log('Parameters:', [username, email, hashedPassword, phone]);
+
+        const userResult = await pool.query(queries.addDoctor, [username, email, hashedPassword, phone]);
+        if (userResult.rows.length === 0) {
+            throw new Error('Failed to retrieve UID from addDoctor query.');
+        }
+        console.log('User result:', userResult.rows);
+
+        const UID = userResult.rows[0].UID; // Extract the UID of the newly inserted user
+
+        console.log('UID retrieved:', UID);
+
+        // Check if UID is valid
+        if (!UID) {
+            throw new Error('Invalid UID.');
+        }
+
+        console.log('Executing query:', queries.addDoctorDetails);
+        console.log('Parameters:', [UID, photo, department, contact_info]);
+
+        await pool.query(queries.addDoctorDetails, [UID, photo, department, contact_info]);
+
+        //await client.query('COMMIT');
+        //await pool.query(queries.addDoctor, [username, email, hashedPassword, phone]);
         res.status(201).send("Doctor Created Successfully!");
     } catch (error) {
+        //await client.query('ROLLBACK');
         console.error('Error adding doctor:', error.message);
         res.status(500).send(`An error occurred while adding the doctor: ${error.message}`);
     }
@@ -288,12 +340,17 @@ const updateStudent = async (req, res) => {
 
 const updateDoctor = async (req, res) => {
     const UID = parseInt(req.params.UID);
-    const { username, email, phone, password } = req.body;
+    const { username, email, phone, password, photo, department, contact_info } = req.body;
 
 
-    const { error } = userUpdateSchema.validate({ username, email, phone, password });
-    if (error) {
-        return res.status(400).send(error.details[0].message);
+    const { error: userError } = userUpdateSchema.validate({ username, email, phone, password });
+    if (userError) {
+        return res.status(400).send(userError.details[0].message);
+    }
+
+    const { error: doctorError } = doctorUpdateSchema.validate({ photo, department, contact_info });
+    if (doctorError) {
+        return res.status(400).send(doctorError.details[0].message);
     }
 
     try {
@@ -304,34 +361,41 @@ const updateDoctor = async (req, res) => {
             return res.status(404).send("Doctor does not exist in the database.");
         }
 
-        let updateFields = {};
+        let userUpdateFields = {};
 
-        // Add fields to update if they exist in the request
-        if (username) updateFields.username = username;
-        if (email) updateFields.email = email;
-        if (phone) updateFields.phone = phone;
+        if (username) userUpdateFields.username = username;
+        if (email) userUpdateFields.email = email;
+        if (phone) userUpdateFields.phone = phone;
 
         if (password && password.new) {
-        if (password.current) {
-            const match = await bcrypt.compare(password.current, user.password);
-            if (!match) {
-            return res.status(400).send('Current password does not match.');
+            if (password.current) {
+                const match = await bcrypt.compare(password.current, user.password);
+                if (!match) {
+                return res.status(400).send('Current password does not match.');
+                }
             }
+            const saltRounds = 10;
+            userUpdateFields.password = await bcrypt.hash(password.new, saltRounds);
         }
-        const saltRounds = 10;
-        updateFields.password = await bcrypt.hash(password.new, saltRounds);
+        if (Object.keys(userUpdateFields).length > 0) {
+            const { query: userQuery, values: userValues } = queries.generateUpdateQuery('users', userUpdateFields);
+            userValues.push(UID);
+            await pool.query(userQuery, userValues);
         }
 
-        if (Object.keys(updateFields).length === 0) {
-            return res.status(400).send('No valid fields provided for update.');
-          }
-      
-          const { query, values } = queries.generateUpdateQuery('users', updateFields);
-          values.push(UID);
-      
-          await pool.query(query, values);
-          res.status(200).send('Doctor updated successfully.');
-        } catch (error) {
+        let doctorUpdateFields = {};
+        if (photo) doctorUpdateFields.photo = photo;
+        if (department) doctorUpdateFields.department = department;
+        if (contact_info) doctorUpdateFields.contact_info = contact_info;
+
+        if (Object.keys(doctorUpdateFields).length > 0) {
+            const { query: doctorQuery, values: doctorValues } = queries.generateUpdateQuery('doctors', doctorUpdateFields, 'DID');
+            doctorValues.push(UID);
+            await pool.query(doctorQuery, doctorValues);
+        }
+        res.status(200).send('Doctor updated successfully.');
+    }
+      catch (error) {
           console.error('Error updating doctor:', error.message);
           res.status(500).send(`An error occurred while updating the doctor: ${error.message}`);
         }
@@ -425,6 +489,7 @@ const updateCourse = (req, res) => {
 module.exports = {
     getUsers,
     getDoctors,
+    getDoctorDetails,
     getUserById,
     /*addUser,*/
     addStudent,
