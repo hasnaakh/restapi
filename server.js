@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require('cors');
 const knex = require('knex');
 const knexfile = require('./knexfile');
+const path = require("path");
 const app = express();
 const port = 3001;
 
@@ -15,6 +16,8 @@ app.use(cors());
 app.use(cookieParser()); 
 app.use(bodyParser.json()); 
 app.use(express.json()); 
+// Serve images from the 'uploads' folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Session middleware
 app.use(session({ 

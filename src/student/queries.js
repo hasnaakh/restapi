@@ -15,6 +15,8 @@ const getDoctorDetails = `
     WHERE u."role" = 'doctor';`
 
 const removeUser = 'DELETE FROM users WHERE "UID" = $1';
+//const removeDoctorDetails = 'DELETE FROM doctors WHERE "UID" = $1';
+
 
 //const updateUser = "UPDATE users SET username = $1 WHERE UID = $2";
 const generateUpdateQuery = (table, updates, idField = 'UID') => {
@@ -75,6 +77,7 @@ module.exports = {
     addDoctorDetails,
     getDoctorDetails,
     removeUser,
+    //removeDoctorDetails,
     //updateUser,
     generateUpdateQuery,
     //courses

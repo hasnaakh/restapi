@@ -8,7 +8,10 @@ const { doctorCreationSchema, doctorUpdateSchema  } = require('../../../validato
 
 const getUsers = (req, res) => {
     pool.query(queries.getUsers, (error, results) => {
-        if (error) throw error;
+        if (error) {
+            console.error('Error fetching users:', error);
+            return res.status(500).send('An error occurred while fetching users.');
+        }
         res.status(200).json(results.rows);
     });
 };
