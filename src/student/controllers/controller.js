@@ -101,8 +101,15 @@ const addStudent = async (req, res) => {
   
 const path = require('path');
 const addDoctor = async (req, res) => {
+
+    console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$",req);
+    console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$",req.file);
+    console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$",req.file.path);
+
+
     const { username, email, password, phone, department, contact_info } = req.body;
     const photo = req.file ? req.file.path : null;
+    console.log("///////////////////",photo)
 
     // Validate user input
     const { error: userError } = userCreationSchema.validate({ username, email, password, phone, role: 'doctor' });
@@ -204,6 +211,7 @@ const removeStudent = (req, res) => {
 };
 
 const removeDoctor = (req, res) => {
+    console.log("Received UID for deletion:", req.params.UID);
     const UID = parseInt(req.params.UID);
 
     pool.query(queries.getUserById, [UID], (error, results) => {
@@ -343,8 +351,13 @@ const updateStudent = async (req, res) => {
 
 const updateDoctor = async (req, res) => {
     const UID = parseInt(req.params.UID);
-    const { username, email, phone, password, photo, department, contact_info } = req.body;
+    console.log("##########################",req);
+    console.log("##########################",req.params.UID);
+    console.log("##########################",JSON.stringify(req.body) );
 
+    const { username, email, phone, password, department, contact_info } = req.body;
+
+    const photo = req.file ? req.file.path : null;
 
     const { error: userError } = userUpdateSchema.validate({ username, email, phone, password });
     if (userError) {

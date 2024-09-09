@@ -19,6 +19,9 @@ app.use(express.json());
 // Serve images from the 'uploads' folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+
+app.use(express.urlencoded({ extended: true }));
+
 // Session middleware
 app.use(session({ 
   secret: process.env.SESSION_SECRET || 'defaultSecret',
@@ -42,11 +45,14 @@ const db = knex(knexfile.development);
 
 // Function to create database if it does not exist
 const createDatabase = async () => {
+
+   // Connect to the 'postgres' default database, not the one you're trying to create
   const client = new (require('pg').Client)({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
+    database: 'postgres', // Connect to 'postgres' to create your new DB
   });
   const dbName = process.env.DB_NAME;
 

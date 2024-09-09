@@ -32,7 +32,7 @@ router.get("/courses/:cid", controller.getCourseById);
 
 //router.put("/:UID", controller.updateUser);
 router.put("/students/:UID", controller.updateStudent);
-router.put("/doctors/:UID", controller.updateDoctor);
+router.put("/doctors/:UID", upload.single('photo'),controller.updateDoctor);
 router.put("/courses/:cid", controller.updateCourse);
 
 router.delete("/students/:UID", controller.removeStudent);
