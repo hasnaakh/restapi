@@ -40,4 +40,9 @@ router.delete("/doctors/:UID", controller.removeDoctor);
 router.delete("/courses/:cid", controller.removeCourse);
 //router.delete("/:UID", controller.removeUser);
 
+router.get('/schedules', controller.getSchedules);
+router.post('/schedules', controller.addSchedule);
+router.delete("/schedule/:sid", controller.removeSchedule);
+
+
 module.exports = router;

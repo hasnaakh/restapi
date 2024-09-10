@@ -65,6 +65,40 @@ const generateUpdateCourseQuery = (table, updates, idField = "CID") => {
 };
 
 
+const getSchedules = `
+    SELECT
+    c.name AS course_name,
+    s.start_time AS start_date,
+    s.end_time AS end_date,
+    s.day As day,
+    u.username AS doctor_name
+    FROM
+        schedule s
+    JOIN
+        courses c ON s."CID" = c."CID"
+    JOIN
+        doctors d ON s."DID" = d."DID"
+    JOIN
+        users u ON d."UID" = u."UID";
+
+`;
+
+const checkScheduleConflict = `
+    SELECT 1 FROM schedule
+    WHERE ("DID" = $1 AND "day" = $2 AND 
+           ($3::time, $4::time) OVERLAPS ("start_time", "end_time"))
+    OR ("location" = $5 AND "day" = $2 AND 
+        ($3::time, $4::time) OVERLAPS ("start_time", "end_time"));
+`;
+
+
+const insertSchedule = `
+    INSERT INTO schedule ("CID", "DID", "day", "start_time", "end_time", "location") 
+    VALUES ($1, $2, $3, $4::time, $5::time, $6) RETURNING *;
+`;
+
+const removeSchedule = 'DELETE FROM schedule WHERE "SID" = $1';
+const getScheduleById = 'SELECT * FROM schedule WHERE "SID" = $1';
 
 module.exports = {
     getUsers,
@@ -88,4 +122,9 @@ module.exports = {
     addCourse,
     removeCourse,
    generateUpdateCourseQuery,
+   getSchedules,
+   checkScheduleConflict,
+    insertSchedule,
+    removeSchedule,
+    getScheduleById,
 };

@@ -501,6 +501,81 @@ const updateCourse = (req, res) => {
 
 
 
+const checkScheduleConflict = async (DID, day, startTime, endTime, location) => {
+    const result = await pool.query(queries.checkScheduleConflict, [DID, day, startTime, endTime, location]);
+    return result.rowCount > 0;  // Return true if conflict exists
+};
+
+const addSchedule = async (req, res) => {
+    const { DID, CID, day, startTime, endTime, location } = req.body;
+
+    try {
+        // Validate time format
+        if (!/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/.test(startTime) || !/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/.test(endTime)) {
+            return res.status(400).json({ message: 'Invalid time format. Use HH:MM:SS or HH:MM.' });
+        }
+
+        // Check for schedule conflict
+        const conflict = await checkScheduleConflict(DID, day, startTime, endTime, location);
+
+        if (conflict) {
+            return res.status(400).json({ message: 'Schedule conflict detected!' });
+        }
+
+        // Insert schedule
+        const insertQuery = `
+        INSERT INTO schedule ("CID", "DID", day, start_time, end_time, location) 
+        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
+
+        // Log values before insertion
+        console.log('Inserting schedule with values:', {
+            CID,
+            DID,
+            day,
+            startTime,
+            endTime,
+            location
+        });
+
+        const { rows } = await pool.query(insertQuery, [CID, DID, day, startTime, endTime, location]);
+
+        res.status(201).json({ schedule: rows[0] });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
+const getSchedules = (req, res) => {
+    pool.query(queries.getSchedules, (error, results) => {
+        if (error) {
+            console.error('Error fetching schedules:', error);
+            return res.status(500).send('An error occurred while fetching schedules.');
+        }
+        res.status(200).json(results.rows);
+    });
+};
+
+
+const removeSchedule = (req, res) => {
+    const sid = parseInt(req.params.sid);
+
+    
+    pool.query(queries.getScheduleById, [sid], (error, results) => {
+        const noScheduleFound = !results.rows.length;
+        if(noScheduleFound){
+            res.send("Schedule does not exist in the database");
+        }
+
+        //delete
+        pool.query(queries.removeSchedule, [sid], (error, results) => {
+            if (error) throw error;
+            res.status(200).send("Schedule removed succefully.");
+        });
+    });
+};
 
 module.exports = {
     getUsers,
@@ -521,4 +596,7 @@ module.exports = {
     addCourse,
     updateCourse,
     removeCourse,
+    addSchedule,
+    getSchedules,
+    removeSchedule,
 };

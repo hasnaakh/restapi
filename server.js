@@ -1,4 +1,6 @@
 const express = require("express");
+const bcrypt = require('bcrypt');
+const pool = require('./db');
 const cors = require('cors');
 const knex = require('knex');
 const knexfile = require('./knexfile');
@@ -84,9 +86,34 @@ const runMigrations = async () => {
   }
 };
 
+const createAdminUser = async () => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@project.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'AdminP@ssw0rd';
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+    const username = adminEmail.split('@')[0];
+
+    const query = `
+      INSERT INTO users (username, email, password, role)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (email) DO NOTHING;`;
+
+    await pool.query(query, [username, adminEmail, hashedPassword, 'admin']);
+    console.log('Admin user created or already exists.');
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+  }
+};
+
+
+
+
 // Start the server
 const startServer = async () => {
   await runMigrations();
+  await createAdminUser();
+
   app.get("/", (req, res) => {
     res.send("Hello World!");
   });
