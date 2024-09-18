@@ -3,6 +3,7 @@ const controller = require('./controllers/controller');
 
 const router = Router();
 const multer = require('multer');
+const { sendNotification, getnots, getNotificationsByUser, markAllAsRead ,deleteNotification} = require('./controllers/notiController');
 
 // Set up storage configuration (optional customization)
 const storage = multer.diskStorage({
@@ -16,6 +17,8 @@ const storage = multer.diskStorage({
 
 // Initialize multer with storage configuration
 const upload = multer({ storage });
+
+
 
 router.get("/students", controller.getUsers);
 //router.get("/doctors", controller.getDoctors);
@@ -43,6 +46,13 @@ router.delete("/courses/:cid", controller.removeCourse);
 router.get('/schedules', controller.getSchedules);
 router.post('/schedules', controller.addSchedule);
 router.delete("/schedule/:sid", controller.removeSchedule);
+
+//notification  
+router.post('/sendnotification', sendNotification); 
+router.get('/notifications',getnots); 
+router.get('/usernotifications',getNotificationsByUser); 
+router.put('/notifications/markAllAsRead', markAllAsRead); 
+router.delete('/notification/:NID', deleteNotification); // New route for deleting a notification
 
 
 module.exports = router;

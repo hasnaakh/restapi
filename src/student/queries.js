@@ -4,7 +4,8 @@ const getUsers = "SELECT * FROM users WHERE role = 'student'";
 const getDoctors = "SELECT * FROM users WHERE role = 'doctor'";
 const getUserById = 'SELECT * FROM users WHERE "UID" = $1';
 const checkEmailExists = "SELECT u FROM users u WHERE u.email = $1"; 
-//const addUser = "INSERT INTO users (username, email, password, role, phone) VALUES ($1, $2, $3, $4, $5)";
+const getnots ="SELECT * FROM notifications"; 
+ //const addUser = "INSERT INTO users (username, email, password, role, phone) VALUES ($1, $2, $3, $4, $5)";
 const addStudent = "INSERT INTO users (username, email, password, role, phone) VALUES ($1, $2, $3, 'student', $4)";
 const addDoctor = 'INSERT INTO users (username, email, password, role, phone) VALUES ($1, $2, $3, \'doctor\', $4) RETURNING "UID"';
 const addDoctorDetails = 'INSERT INTO doctors ("UID", photo, department, contact_info) VALUES ($1, $2, $3, $4)';
@@ -127,4 +128,5 @@ module.exports = {
     insertSchedule,
     removeSchedule,
     getScheduleById,
+    getnots
 };
