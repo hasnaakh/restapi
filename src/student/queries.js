@@ -68,10 +68,12 @@ const generateUpdateCourseQuery = (table, updates, idField = "CID") => {
 
 const getSchedules = `
     SELECT
+    s."SID" As sid,
     c.name AS course_name,
     s.start_time AS start_date,
     s.end_time AS end_date,
     s.day As day,
+    s.location As location,
     u.username AS doctor_name
     FROM
         schedule s

@@ -562,20 +562,27 @@ const getSchedules = (req, res) => {
 const removeSchedule = (req, res) => {
     const sid = parseInt(req.params.sid);
 
-    
     pool.query(queries.getScheduleById, [sid], (error, results) => {
-        const noScheduleFound = !results.rows.length;
-        if(noScheduleFound){
-            res.send("Schedule does not exist in the database");
+        if (error) {
+            console.error('Error fetching schedule:', error.message);
+            return res.status(500).send('An error occurred while fetching the schedule.');
         }
 
-        //delete
-        pool.query(queries.removeSchedule, [sid], (error, results) => {
-            if (error) throw error;
-            res.status(200).send("Schedule removed succefully.");
+        if (!results || !results.rows || !results.rows.length) {
+            return res.status(404).send("Schedule does not exist in the database");
+        }
+
+        pool.query(queries.removeSchedule, [sid], (error) => {
+            if (error) {
+                console.error('Error removing schedule:', error.message);
+                return res.status(500).send('An error occurred while removing the schedule.');
+            }
+
+            res.status(200).send("Schedule removed successfully.");
         });
     });
 };
+
 
 module.exports = {
     getUsers,
