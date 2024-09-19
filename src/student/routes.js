@@ -32,6 +32,7 @@ router.post("/addcourse", controller.addCourse);
 
 router.get("/users/:UID", controller.getUserById);
 router.get("/courses/:cid", controller.getCourseById);
+router.get("/coursess/:cid", controller.getCoursesById);
 
 //router.put("/:UID", controller.updateUser);
 router.put("/students/:UID", controller.updateStudent);

@@ -459,6 +459,28 @@ const getCourseById = (req, res) => {
         res.status(200).json(results.rows);
     });
 };
+const getCoursesById = (req, res) => {
+    const cid = parseInt(req.params.cid);
+
+    if (isNaN(cid)) {
+        return res.status(400).send('Invalid course ID.');
+    }
+
+    pool.query(queries.getCourseDocById, [cid], (error, results) => {
+        if (error) {
+            console.error('Error fetching course by ID:', error);
+            return res.status(500).send('An error occurred while fetching the course.');
+        }
+
+        if (!results.rows.length) {
+            return res.status(404).send('Course not found.');
+        }
+
+        res.status(200).json(results.rows);
+    });
+};
+
+
 
 const updateCourse = (req, res) => {
     const cid = parseInt(req.params.cid);
@@ -600,6 +622,7 @@ module.exports = {
     updateDoctor,
     getCourses,
     getCourseById,
+    getCoursesById,
     addCourse,
     updateCourse,
     removeCourse,

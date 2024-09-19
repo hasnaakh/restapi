@@ -45,6 +45,21 @@ const getCourseByName = "SELECT * FROM courses WHERE neme = $1";
 const getCourseById = 'SELECT * FROM courses WHERE "CID" = $1';
 const getCourseBycode= "SELECT * FROM courses WHERE code = $1";
 const removeCourse = 'DELETE FROM courses WHERE "CID" = $1';
+const getCourseDocById = `
+SELECT
+c."CID",
+c.name AS course_name,
+c.code AS course_code,
+c.description AS description,
+STRING_AGG(DISTINCT u.username, ', ') AS doctor_names
+FROM schedule s
+JOIN courses c ON s."CID" = c."CID"
+JOIN doctors d ON s."DID" = d."DID"
+JOIN users u ON d."UID" = u."UID"
+WHERE c."CID" = $1 
+GROUP BY c."CID", c.name, c.code, c.description;
+
+`;
 
 
 const generateUpdateCourseQuery = (table, updates, idField = "CID") => {
@@ -119,6 +134,7 @@ module.exports = {
     generateUpdateQuery,
     //courses
     getCourseById,
+    getCourseDocById,
     getCourses,
     getCourseBycode,
     getCourseByName,
