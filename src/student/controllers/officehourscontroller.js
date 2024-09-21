@@ -24,7 +24,7 @@ exports.getOfficeHours = async (req, res) => {
 const checkTimeConflict = async (doctorId, day, startTime, endTime) => {
     const query = `
         SELECT * FROM office_hours
-        WHERE doctorId = $1 AND day = $2
+        WHERE "DID" = $1 AND day = $2
         AND (
             (start_time < $4 AND end_time > $3) OR
             (start_time BETWEEN $3 AND $4) OR

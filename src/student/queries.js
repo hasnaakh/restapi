@@ -59,14 +59,13 @@ JOIN users u ON d."UID" = u."UID"
 WHERE c."CID" = $1 
 GROUP BY c."CID", c.name, c.code, c.description;
 
-`;
-
-const getDoctorCourById = `
-SELECT
+`; 
+ 
+const getDoctorCourById = `SELECT
     d."DID", 
     d.photo AS photo, 
     d.department AS department, 
-    d.contact_info As contact_info, 
+    d.contact_info AS contact_info, 
     u.username AS doctor_name,
     STRING_AGG(DISTINCT c.name, ', ') AS courses_names
 FROM schedule s 
@@ -74,8 +73,7 @@ JOIN courses c ON s."CID" = c."CID"
 JOIN doctors d ON s."DID" = d."DID"
 JOIN users u ON d."UID" = u."UID"
 WHERE d."DID" = $1 
-GROUP BY d."DID", d.photo, d.department, d.contact_info, u.username;
-`;
+GROUP BY d."DID", d.photo, d.department, d.contact_info, u.username`;
 
 
 const generateUpdateCourseQuery = (table, updates, idField = "CID") => {
@@ -133,6 +131,7 @@ const insertSchedule = `
 
 const removeSchedule = 'DELETE FROM schedule WHERE "SID" = $1';
 const getScheduleById = 'SELECT * FROM schedule WHERE "SID" = $1';
+ const getDoctorDetailsById= 'SELECT * FROM doctors WHERE "UID" = $1';  // Ensure this is not null or undefined
 
 module.exports = {
     getUsers,
@@ -151,7 +150,7 @@ module.exports = {
     //courses
     getCourseById,
     getCourseDocById,
-    getDoctorCourById,
+    // getDoctorCourById,
     getCourses,
     getCourseByCode,
     getCourseByName,
@@ -163,5 +162,10 @@ module.exports = {
     insertSchedule,
     removeSchedule,
     getScheduleById,
-    getnots
+    getnots,
+    getDoctorDetailsById,
+    getDoctorCourById    
+
+
+     
 };

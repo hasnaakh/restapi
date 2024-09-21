@@ -167,12 +167,82 @@ const deleteNotification = async (req, res) => {
   }
 };
 
+
+
+const submitContactForm = async (req, res) => {
+  const { name, email, subject, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Name, email, and message are required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO contact (name, email, subject, message, created_at) 
+       VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
+      [name, email, subject, message]
+    );
+
+    res.status(201).json({
+      message: 'Contact form submitted successfully.',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error inserting contact form:', error);
+    res.status(500).json({ error: 'An error occurred while submitting the contact form.' });
+  }
+};
+
+const getcontacts = async (req, res) => {
+  if (req.method === 'GET') {
+    try {
+      const { rows } = await pool.query('SELECT * FROM contact ORDER BY created_at DESC');
+      res.status(200).json(rows);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch messages', error });
+    }
+  } else {
+    res.status(405).json({ message: 'Method not allowed' });
+  }
+}
+const deleteContact = async (req, res) => {
+  const { cid } = req.params; // Assume you're passing the ID of the entry to delete in the URL
+
+  if (!cid) {
+    return res.status(400).json({ error: 'Contact form entry ID is required.' });
+  }
+
+  console.log("Received CID to delete:", cid); // Log the CID
+
+  try {
+    const result = await pool.query(
+      `DELETE FROM contact WHERE "CID" = $1 RETURNING *`,
+      [cid]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Contact form entry not found.' });
+    }
+
+    res.status(200).json({
+      message: 'Contact form entry deleted successfully.',
+      deletedEntry: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error deleting contact form entry:', error.message); // Log the error message
+    res.status(500).json({ error: 'An error occurred while deleting the contact form entry.' });
+  }
+};
+
 module.exports = {
   sendNotification,
   getnots,
   getNotificationsByUser,
   markAllAsRead,
-  deleteNotification
+  deleteNotification,
+  submitContactForm,
+  getcontacts,
+  deleteContact
 };
 
 

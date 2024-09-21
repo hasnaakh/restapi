@@ -40,6 +40,30 @@ const getDoctorDetails = async (req, res) => {
     }
 };
 
+
+const getDoctorDetailsById = async (req, res) => {
+    const doctorId = parseInt(req.params.did);  // Get doctor ID from the request params
+    console.log('Fetching doctor details for ID:', doctorId);
+
+    try {
+        // Execute the query and pass the doctorId
+        const result = await pool.query(queries.getDoctorDetailsById, [doctorId]);
+
+        if (result.rows.length === 0) {
+            console.log('No doctor details found.');
+            return res.status(404).json({ message: 'Doctor not found' });
+        }
+
+        // Return doctor details in response
+        return res.status(200).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error fetching doctor details:', error);
+        return res.status(500).json({ error: 'An error occurred while fetching doctor details' });
+    }
+};
+
+
+
 const getUserById = (req, res) => {
     const UID = parseInt(req.params.UID);
     console.log('Executing query:', queries.getUserById, 'with params:', [UID]);
@@ -361,6 +385,28 @@ const getCourseById = (req, res) => {
         res.status(200).json(results.rows);
     });
 };
+
+const getDoctorOfficeHours = (req, res) => {
+    const did = req.params.did;
+
+    pool.query(
+        'SELECT * FROM office_hours WHERE "DID" = $1',
+        [did],
+        (error, results) => {
+            if (error) {
+                console.error('Error fetching office hours:', error);
+                return res.status(500).send('An error occurred while fetching office hours.');
+            }
+            if (!results.rows.length) {
+                return res.status(404).send('No office hours found.');
+            }
+            res.status(200).json(results.rows);
+        }
+    );
+};
+
+// In your router
+
 const getCoursesById = (req, res) => {
     const cid = parseInt(req.params.cid);
 
@@ -381,27 +427,30 @@ const getCoursesById = (req, res) => {
         res.status(200).json(results.rows);
     });
 };
-
 const getDoctorCourById = (req, res) => {
-    const did = parseInt(req.params.did);
+    const did = req.params.did;
 
     if (isNaN(did)) {
-        return res.status(400).send('Invalid doctor ID.');
+        return res.status(400).json({ message: 'Invalid doctor ID.' });
     }
 
+    console.log('Fetching doctor courses for ID:', did);
+    
     pool.query(queries.getDoctorCourById, [did], (error, results) => {
         if (error) {
             console.error('Error fetching doctor by ID:', error);
-            return res.status(500).send('An error occurred while fetching the doctor.');
+            return res.status(500).json({ message: 'An error occurred while fetching the doctor.' });
         }
 
         if (!results.rows.length) {
-            return res.status(404).send('Doctor not found.');
+            
+            return res.status(404).json({ message: `Doctor not found.${did}` });
         }
 
-        res.status(200).json(results.rows);
+        res.status(200).json(results.rows[0]); // Send the first row since there's one doctor
     });
 };
+
 
 const addCourse = (req, res) => {
     const { name, code, description } = req.body;
@@ -653,5 +702,7 @@ module.exports = {
     addSchedule,
     getSchedules,
     removeSchedule,
-    getdid
+    getdid,
+    getDoctorDetailsById,
+    getDoctorOfficeHours
 };

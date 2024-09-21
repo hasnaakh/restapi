@@ -20,19 +20,18 @@ const storage = multer.diskStorage({
 // Initialize multer with storage configuration
 const upload = multer({ storage });
 
-
+const notiController =require('./controllers/notiController');
 
 router.get("/students", controller.getUsers);
-//router.get("/doctors", controller.getDoctors);
+router.get("/doctors/:did", controller.getDoctorDetailsById);
 router.get("/doctors", controller.getDoctorDetails);
 router.get("/courses", controller.getCourses);
-
+router.get("/course/:cid", controller.getCourseById);
 //router.post("/", controller.addUser);
 router.post("/addstudent", controller.addStudent);
 router.post("/adddoctor", upload.single('photo'), controller.addDoctor);
 router.post("/addcourse", controller.addCourse);
-
-router.get("/users/:UID", controller.getUserById);
+ router.get("/users/:UID", controller.getUserById);
 router.get("/coursess/:cid", controller.getCoursesById);
 router.get('/getdid', controller.getdid);
 router.get("/doctorss/:did", controller.getDoctorCourById);
@@ -65,5 +64,9 @@ router.get('/officehours/:did', officehourscontroller.getOfficeHours);
 router.post('/addofficehour', officehourscontroller.addOfficeHour);
 router.delete('/officehour/:id', officehourscontroller.deleteOfficeHour);
 
+//contact 
+router.post('/submit-contact',notiController.submitContactForm); 
+router.get('/contacts',notiController.getcontacts); 
+router.delete('/contacts/:cid',notiController.deleteContact);
 
 module.exports = router;
