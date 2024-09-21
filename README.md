@@ -54,3 +54,8 @@ Ensure that you have the following installed on your machine:
 3. **Start the server**:
    ```bash
    node server.js
+
+
+## To Log In As Admin
+- **Email**: admin@project.com
+- **Password**: AdminP@ssw0rd
