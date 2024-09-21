@@ -43,13 +43,13 @@ Ensure that you have the following installed on your machine:
    npm install
 
 2. **Set up the environment variables**:
-   In .env file in the root directory add your PostgreSQL configuration:
-   *DB_HOST=your-db-host
-    DB_USER=your-db-user
-    DB_PASSWORD=your-db-password
-    DB_NAME=your-db-name
-    DB_PORT=your-db-port
-    JWT_SECRET=your-jwt-secret*
+   -- In .env file in the root directory add your PostgreSQL configuration:
+   - DB_HOST=your-db-host
+   - DB_USER=your-db-user
+   - DB_PASSWORD=your-db-password
+   - DB_NAME=your-db-name
+   - DB_PORT=your-db-port
+   - JWT_SECRET=your-jwt-secret
 
 3. **Start the server**:
    ```bash
