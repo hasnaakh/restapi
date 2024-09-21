@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/'); // Specify the folder where you want to save uploaded files
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname); // Customize the file name
+    cb(null, Date.now() + '-' + file.originalname); 
   }
 });
 
@@ -35,6 +35,7 @@ router.post("/addcourse", controller.addCourse);
 router.get("/users/:UID", controller.getUserById);
 router.get("/coursess/:cid", controller.getCoursesById);
 router.get('/getdid', controller.getdid);
+router.get("/doctorss/:did", controller.getDoctorCourById);
 
 //router.put("/:UID", controller.updateUser);
 router.put("/students/:UID", controller.updateStudent);
@@ -55,7 +56,7 @@ router.post('/sendnotification', sendNotification);
 router.get('/notifications',getnots); 
 router.get('/usernotifications',getNotificationsByUser); 
 router.put('/notifications/markAllAsRead', markAllAsRead); 
-router.delete('/notification/:NID', deleteNotification); // New route for deleting a notification
+router.delete('/notification/:NID', deleteNotification); 
 
 
 //office hours

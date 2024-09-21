@@ -43,7 +43,7 @@ Ensure that you have the following installed on your machine:
    npm install
 
 2. **Set up the environment variables**:
-   -- In .env file in the root directory add your PostgreSQL configuration:
+   In .env file in the root directory add your PostgreSQL configuration:
    - DB_HOST=your-db-host
    - DB_USER=your-db-user
    - DB_PASSWORD=your-db-password

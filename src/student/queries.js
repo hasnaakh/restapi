@@ -47,11 +47,11 @@ const getCourseByCode= "SELECT * FROM courses WHERE code = $1";
 const removeCourse = 'DELETE FROM courses WHERE "CID" = $1';
 const getCourseDocById = `
 SELECT
-c."CID",
-c.name AS course_name,
-c.code AS course_code,
-c.description AS description,
-STRING_AGG(DISTINCT u.username, ', ') AS doctor_names
+    c."CID",
+    c.name AS course_name,
+    c.code AS course_code,
+    c.description AS description,
+    STRING_AGG(DISTINCT u.username, ', ') AS doctor_names
 FROM schedule s
 JOIN courses c ON s."CID" = c."CID"
 JOIN doctors d ON s."DID" = d."DID"
@@ -59,6 +59,22 @@ JOIN users u ON d."UID" = u."UID"
 WHERE c."CID" = $1 
 GROUP BY c."CID", c.name, c.code, c.description;
 
+`;
+
+const getDoctorCourById = `
+SELECT
+    d."DID", 
+    d.photo AS photo, 
+    d.department AS department, 
+    d.contact_info As contact_info, 
+    u.username AS doctor_name,
+    STRING_AGG(DISTINCT c.name, ', ') AS courses_names
+FROM schedule s 
+JOIN courses c ON s."CID" = c."CID"
+JOIN doctors d ON s."DID" = d."DID"
+JOIN users u ON d."UID" = u."UID"
+WHERE d."DID" = $1 
+GROUP BY d."DID", d.photo, d.department, d.contact_info, u.username;
 `;
 
 
@@ -135,6 +151,7 @@ module.exports = {
     //courses
     getCourseById,
     getCourseDocById,
+    getDoctorCourById,
     getCourses,
     getCourseByCode,
     getCourseByName,

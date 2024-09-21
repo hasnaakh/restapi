@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt'); // For password hashing and comparison
 const pool = require('../../../db');
 const jwt = require('jsonwebtoken');
 
-// Render login page (optional, if using server-side rendering)
+
 /*exports.getLoginPage = (req, res) => {
     res.send("Login Page"); 
 };*/
@@ -11,7 +11,7 @@ const getLoginPage = (req, res) => {
     res.send("Login Page");
 };
 
-// Handle user login
+//login
 /*exports.login = async (req, res) => {
     const { email, password } = req.body;
 
@@ -71,12 +71,12 @@ const login = async (req, res) => {
     }
 };
 
-// Handle user logout
+//logout
 const logout = (req, res) => {
     const token = req.header('Authorization')?.split(' ')[1];
 
     if (token) {
-        blacklistedTokens.add(token);  // Assuming blacklistedTokens is a Set
+        blacklistedTokens.add(token);  //blacklistedTokens is a Set
         res.status(200).send({ message: 'Logout successful' });
     } else {
         res.status(400).send({ message: 'Token not provided' });

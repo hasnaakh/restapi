@@ -165,23 +165,6 @@ const addDoctor = async (req, res) => {
     }
 };
 
-/*const removeUser = (req, res) => {
-    const UID = parseInt(req.params.UID);
-
-    //check user exist
-    pool.query(queries.getUserById, [UID], (error, results) => {
-        const noUserFound = !results.rows.length;
-        if(noUserFound){
-            res.send("User does not exist in the database");
-        }
-
-        //delete
-        pool.query(queries.removeUser, [UID], (error, results) => {
-            if (error) throw error;
-            res.status(200).send("User removed succefully.");
-        });
-    });
-};*/
 
 const removeStudent = (req, res) => {
     const UID = parseInt(req.params.UID);
@@ -238,62 +221,7 @@ const removeDoctor = (req, res) => {
     });
 };
 
-/*const updateUser = (req, res) => {
-    const UID = parseInt(req.params.UID);
-    const { username } = req.body;
 
-    pool.query(queries.getUserById, [UID], (error, results) => {
-        const noUserFound = !results.rows.length;
-        if(noUserFound){
-            res.send("User does not exist in the database");
-        }
-
-        pool.query(queries.updateUser, [username, UID], (error, results) => {
-            if (error) throw error;
-            res.status(200).send("User updated successfully");
-        });
-    });
-};*/
-
-/*const updateUser = (req, res) => {
-    const UID = parseInt(req.params.UID);
-    const updates = req.body;
-
-    // Check if the user exists
-    pool.query(queries.getUserById, [UID], (error, results) => {
-        if (error) {
-            console.error('Error fetching user:', error);
-            res.status(500).send("An error occurred while fetching the user.");
-            return;
-        }
-
-        const noUserFound = !results.rows.length;
-        if (noUserFound) {
-            res.status(404).send("User does not exist in the database");
-            return;
-        }
-
-        try {
-            const { query, values } = queries.generateUpdateQuery('users', updates);
-            values.push(UID); 
-
-            console.log('Update Query:', query);
-            console.log('Values:', values);
-
-            pool.query(query, values, (error, results) => {
-                if (error) {
-                    console.error('Error updating user:', error);
-                    res.status(500).send("An error occurred while updating the user.");
-                    return;
-                }
-                res.status(200).send("User updated successfully.");
-            });
-        } catch (error) {
-            console.error('Error generating update query:', error);
-            res.status(400).send(error.message);
-        }
-    });
-};*/
 
 const updateStudent = async (req, res) => {
     const UID = parseInt(req.params.UID);
@@ -417,7 +345,7 @@ const updateDoctor = async (req, res) => {
         }
 };
 
-//Asmaa
+
 //Courses
 const getCourses = (req, res) => {
     pool.query(queries.getCourses, (error, results) => {
@@ -454,6 +382,26 @@ const getCoursesById = (req, res) => {
     });
 };
 
+const getDoctorCourById = (req, res) => {
+    const did = parseInt(req.params.did);
+
+    if (isNaN(did)) {
+        return res.status(400).send('Invalid doctor ID.');
+    }
+
+    pool.query(queries.getDoctorCourById, [did], (error, results) => {
+        if (error) {
+            console.error('Error fetching doctor by ID:', error);
+            return res.status(500).send('An error occurred while fetching the doctor.');
+        }
+
+        if (!results.rows.length) {
+            return res.status(404).send('Doctor not found.');
+        }
+
+        res.status(200).json(results.rows);
+    });
+};
 
 const addCourse = (req, res) => {
     const { name, code, description } = req.body;
@@ -474,7 +422,7 @@ const addCourse = (req, res) => {
             return res.status(409).send('A course with this code already exists.');
         }
 
-        // Proceed with adding the course
+        
         pool.query(queries.addCourse, [code, name, description], (error, results) => {
             if (error) {
                 console.error('Error adding course:', error);
@@ -520,7 +468,7 @@ const updateCourse = (req, res) => {
         
             // Proceed with updating the course
             const { query, values } = queries.generateUpdateCourseQuery('courses', updates);
-            values.push(cid); // Add the course ID as the last value
+            values.push(cid); 
         
             pool.query(query, values, (error, results) => {
                 if (error) {
@@ -537,20 +485,20 @@ const updateCourse = (req, res) => {
 const removeCourse = (req, res) => {
     const cid = parseInt(req.params.cid);
 
-    // Check if course exists
+    
     pool.query(queries.getCourseById, [cid], (error, results) => {
         if (error) {
             console.error('Error checking course existence:', error);
             return res.status(500).send('An error occurred while checking if the course exists.');
         }
         
-        console.log('Results from getCourseById query:', results.rows); // Add this line to debug
+        console.log('Results from getCourseById query:', results.rows); 
         const noCourseFound = !results.rows.length;
         if (noCourseFound) {
             return res.status(404).send('Course does not exist in the database.');
         }
     
-        // Proceed to delete the course
+        
         pool.query(queries.removeCourse, [cid], (error, results) => {
             if (error) {
                 console.error('Error deleting course:', error);
@@ -566,7 +514,7 @@ const removeCourse = (req, res) => {
 
 const checkScheduleConflict = async (DID, day, startTime, endTime, location) => {
     const result = await pool.query(queries.checkScheduleConflict, [DID, day, startTime, endTime, location]);
-    return result.rowCount > 0;  // Return true if conflict exists
+    return result.rowCount > 0;  
 };
 
 const addSchedule = async (req, res) => {
@@ -585,12 +533,12 @@ const addSchedule = async (req, res) => {
             return res.status(400).json({ message: 'Schedule conflict detected!' });
         }
 
-        // Insert schedule
+        
         const insertQuery = `
         INSERT INTO schedule ("CID", "DID", day, start_time, end_time, location) 
         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
 
-        // Log values before insertion
+        
         console.log('Inserting schedule with values:', {
             CID,
             DID,
@@ -655,7 +603,7 @@ const getdid = async (req, res) => {
 
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('Decoded Token:', decodedToken); // Log decoded token
+        console.log('Decoded Token:', decodedToken); 
 
         const userId = decodedToken.userId; // Assuming userId is part of the token
         console.log('Received userId:', userId);
@@ -668,7 +616,7 @@ const getdid = async (req, res) => {
         `;
 
         const { rows } = await pool.query(query, [userId]);
-        console.log('Query result:', rows); // Log the query result
+        console.log('Query result:', rows); 
 
         if (rows.length > 0) {
             res.status(200).json({ did: rows[0].DID });
@@ -698,6 +646,7 @@ module.exports = {
     getCourses,
     getCourseById,
     getCoursesById,
+    getDoctorCourById,
     addCourse,
     updateCourse,
     removeCourse,
