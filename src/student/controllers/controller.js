@@ -3,6 +3,7 @@ const queries = require('../queries');
 const bcrypt = require('bcrypt'); //for hashing
 const { userCreationSchema, userUpdateSchema } = require('../../../validators/userValidation');
 const { doctorCreationSchema, doctorUpdateSchema  } = require('../../../validators/doctorValidation');
+const jwt = require('jsonwebtoken');
 
 
 
@@ -38,7 +39,6 @@ const getDoctorDetails = async (req, res) => {
         res.status(500).send(`An error occurred while fetching doctor details: ${error.message}`);
     }
 };
-
 
 const getUserById = (req, res) => {
     const UID = parseInt(req.params.UID);
@@ -426,32 +426,6 @@ const getCourses = (req, res) => {
     });
 };
 
-const addCourse = (req, res) => {
-    const { name, code, description } = req.body;        
-        pool.query(queries.addCourse, [code, name, description], (error, results) => {
-            if (error) throw error;
-            res.status(201).send("Course Added Successfully!");
-        });
-};
-
-const removeCourse = (req, res) => {
-    const cid = parseInt(req.params.cid);
-
-    //check course exist
-    pool.query(queries.getCourseById, [cid], (error, results) => {
-        const noCourseFound = !results.rows.length;
-        if(noCourseFound){
-            res.send("Course does not exist in the database");
-        }
-
-        //delete
-        pool.query(queries.removeCourse, [cid], (error, results) => {
-            if (error) throw error;
-            res.status(200).send("Course removed succefully.");
-        });
-    });
-};
-
 const getCourseById = (req, res) => {
     const cid = parseInt(req.params.cid);
     pool.query(queries.getCourseById, [cid], (error, results) => {
@@ -481,46 +455,113 @@ const getCoursesById = (req, res) => {
 };
 
 
+const addCourse = (req, res) => {
+    const { name, code, description } = req.body;
+
+    // Validation: Check if any field is missing or just spaces
+    if (!name || !code || !description || name.trim() === '' || code.trim() === '' || description.trim() === '') {
+        return res.status(400).send('All fields (name, code, description) are required and cannot be empty.');
+    }
+
+    // Check if the course code already exists
+    pool.query(queries.getCourseByCode, [code], (error, results) => {
+        if (error) {
+            console.error('Error checking course code:', error);
+            return res.status(500).send('An error occurred while checking the course code.');
+        }
+
+        if (results.rows.length > 0) {
+            return res.status(409).send('A course with this code already exists.');
+        }
+
+        // Proceed with adding the course
+        pool.query(queries.addCourse, [code, name, description], (error, results) => {
+            if (error) {
+                console.error('Error adding course:', error);
+                return res.status(500).send('An error occurred while adding the course.');
+            }
+            res.status(201).send('Course added successfully!');
+        });
+    });
+};
 
 const updateCourse = (req, res) => {
     const cid = parseInt(req.params.cid);
     const updates = req.body;
+    const { name, code, description } = updates;
+
+    // Validation: Check if any field is missing or just spaces
+    if (!name || !code || !description || name.trim() === '' || code.trim() === '' || description.trim() === '') {
+        return res.status(400).send('All fields (name, code, description) are required and cannot be empty or just spaces.');
+    }
 
     pool.query(queries.getCourseById, [cid], (error, results) => {
         if (error) {
             console.error('Error fetching course:', error);
-            res.status(500).send("An error occurred while fetching the course.");
-            return;
+            return res.status(500).send("An error occurred while fetching the course.");
         }
 
         const noCourseFound = !results.rows.length;
         if (noCourseFound) {
-            res.status(404).send("Course does not exist in the database");
-            return;
+            return res.status(404).send("Course does not exist in the database.");
         }
 
-        try {
+        // Check if the updated course code already exists (and not for the same course)
+        pool.query(queries.getCourseByCode, [code], (error, codeResults) => {
+            if (error) {
+                console.error('Error checking course code:', error);
+                return res.status(500).send("An error occurred while checking the course code.");
+            }
+        
+            // Check if another course (not the one being updated) already has the same code
+            if (codeResults.rows.length > 0 && codeResults.rows[0].cid !== cid) {
+                return res.status(409).send('A course with this code already exists.');
+            }
+        
+            // Proceed with updating the course
             const { query, values } = queries.generateUpdateCourseQuery('courses', updates);
             values.push(cid); // Add the course ID as the last value
-
-            console.log('Update Query:', query);
-            console.log('Values:', values);
-
+        
             pool.query(query, values, (error, results) => {
                 if (error) {
-                    console.error('Error updating Course:', error); // Show the error details
-                    res.status(500).send("An error occurred while updating the Course."); // Temporary log error for debug
-                    return;
+                    console.error('Error updating course:', error);
+                    return res.status(500).send("An error occurred while updating the course.");
                 }
                 res.status(200).send("Course updated successfully.");
             });
-        } catch (error) {
-            console.error('Error generating update query:', error);
-            res.status(400).send(error.message);
-        }
+        });
+        
     });
 };
 
+const removeCourse = (req, res) => {
+    const cid = parseInt(req.params.cid);
+
+    // Check if course exists
+    pool.query(queries.getCourseById, [cid], (error, results) => {
+        if (error) {
+            console.error('Error checking course existence:', error);
+            return res.status(500).send('An error occurred while checking if the course exists.');
+        }
+        
+        console.log('Results from getCourseById query:', results.rows); // Add this line to debug
+        const noCourseFound = !results.rows.length;
+        if (noCourseFound) {
+            return res.status(404).send('Course does not exist in the database.');
+        }
+    
+        // Proceed to delete the course
+        pool.query(queries.removeCourse, [cid], (error, results) => {
+            if (error) {
+                console.error('Error deleting course:', error);
+                return res.status(500).send('An error occurred while removing the course.');
+            }
+    
+            res.status(200).send('Course removed successfully.');
+        });
+    });
+    
+};
 
 
 const checkScheduleConflict = async (DID, day, startTime, endTime, location) => {
@@ -568,8 +609,6 @@ const addSchedule = async (req, res) => {
     }
 };
 
-
-
 const getSchedules = (req, res) => {
     pool.query(queries.getSchedules, (error, results) => {
         if (error) {
@@ -605,6 +644,42 @@ const removeSchedule = (req, res) => {
     });
 };
 
+const getdid = async (req, res) => {
+    const authorizationHeader = req.headers.authorization;
+
+    if (!authorizationHeader) {
+        return res.status(401).json({ error: 'Authorization header is missing' });
+    }
+
+    const token = authorizationHeader.split(' ')[1];
+
+    try {
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('Decoded Token:', decodedToken); // Log decoded token
+
+        const userId = decodedToken.userId; // Assuming userId is part of the token
+        console.log('Received userId:', userId);
+
+        const query = `
+            SELECT d."DID"
+            FROM doctors d
+            JOIN users u ON u."UID" = d."UID"
+            WHERE u."UID" = $1
+        `;
+
+        const { rows } = await pool.query(query, [userId]);
+        console.log('Query result:', rows); // Log the query result
+
+        if (rows.length > 0) {
+            res.status(200).json({ did: rows[0].DID });
+        } else {
+            res.status(404).json({ error: 'Doctor not found' });
+        }
+    } catch (error) {
+        console.error('Error fetching DID:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 
 module.exports = {
     getUsers,
@@ -629,4 +704,5 @@ module.exports = {
     addSchedule,
     getSchedules,
     removeSchedule,
+    getdid
 };

@@ -43,7 +43,7 @@ const getCourses = "SELECT * FROM courses ";
 const addCourse = "INSERT INTO courses (code, name, description) VALUES ($1, $2, $3)";
 const getCourseByName = "SELECT * FROM courses WHERE neme = $1";
 const getCourseById = 'SELECT * FROM courses WHERE "CID" = $1';
-const getCourseBycode= "SELECT * FROM courses WHERE code = $1";
+const getCourseByCode= "SELECT * FROM courses WHERE code = $1";
 const removeCourse = 'DELETE FROM courses WHERE "CID" = $1';
 const getCourseDocById = `
 SELECT
@@ -136,7 +136,7 @@ module.exports = {
     getCourseById,
     getCourseDocById,
     getCourses,
-    getCourseBycode,
+    getCourseByCode,
     getCourseByName,
     addCourse,
     removeCourse,

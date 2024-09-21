@@ -1,5 +1,7 @@
 const { Router } = require('express');
 const controller = require('./controllers/controller');
+const officehourscontroller = require('./controllers/officehourscontroller');
+
 
 const router = Router();
 const multer = require('multer');
@@ -31,8 +33,8 @@ router.post("/adddoctor", upload.single('photo'), controller.addDoctor);
 router.post("/addcourse", controller.addCourse);
 
 router.get("/users/:UID", controller.getUserById);
-router.get("/courses/:cid", controller.getCourseById);
 router.get("/coursess/:cid", controller.getCoursesById);
+router.get('/getdid', controller.getdid);
 
 //router.put("/:UID", controller.updateUser);
 router.put("/students/:UID", controller.updateStudent);
@@ -54,6 +56,13 @@ router.get('/notifications',getnots);
 router.get('/usernotifications',getNotificationsByUser); 
 router.put('/notifications/markAllAsRead', markAllAsRead); 
 router.delete('/notification/:NID', deleteNotification); // New route for deleting a notification
+
+
+//office hours
+
+router.get('/officehours/:did', officehourscontroller.getOfficeHours);
+router.post('/addofficehour', officehourscontroller.addOfficeHour);
+router.delete('/officehour/:id', officehourscontroller.deleteOfficeHour);
 
 
 module.exports = router;
