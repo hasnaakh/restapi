@@ -1,11 +1,22 @@
 const { Router } = require('express');
 const controller = require('./controllers/controller');
 const officehourscontroller = require('./controllers/officehourscontroller');
+const db = require('../../db'); 
 
 
 const router = Router();
 const multer = require('multer');
 const { sendNotification, getnots, getNotificationsByUser, markAllAsRead ,deleteNotification} = require('./controllers/notiController');
+
+
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true); // Accept the file
+  } else {
+    cb(new Error('Invalid file type. Only image files are allowed.'), false); // Reject the file
+  }
+};
 
 // Set up storage configuration (optional customization)
 const storage = multer.diskStorage({
@@ -18,7 +29,7 @@ const storage = multer.diskStorage({
 });
 
 // Initialize multer with storage configuration
-const upload = multer({ storage });
+const upload = multer({ storage, fileFilter, });
 
 const notiController =require('./controllers/notiController');
 
@@ -69,4 +80,27 @@ router.post('/submit-contact',notiController.submitContactForm);
 router.get('/contacts',notiController.getcontacts); 
 router.delete('/contacts/:cid',notiController.deleteContact);
 
+
+router.get('/check-email', async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const result = await db.query("SELECT u FROM users u WHERE u.email = $1", [email]);
+
+    if (result.rows.length > 0) {
+      return res.status(200).json({ exists: true });
+    } else {
+      return res.status(200).json({ exists: false });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 module.exports = router;
+//module.exports = upload;

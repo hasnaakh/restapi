@@ -484,10 +484,8 @@ const addCourse = (req, res) => {
 
 const updateCourse = (req, res) => {
     const cid = parseInt(req.params.cid);
-    const updates = req.body;
-    const { name, code, description } = updates;
+    const { name, code, description } = req.body;
 
-    // Validation: Check if any field is missing or just spaces
     if (!name || !code || !description || name.trim() === '' || code.trim() === '' || description.trim() === '') {
         return res.status(400).send('All fields (name, code, description) are required and cannot be empty or just spaces.');
     }
@@ -503,22 +501,22 @@ const updateCourse = (req, res) => {
             return res.status(404).send("Course does not exist in the database.");
         }
 
-        // Check if the updated course code already exists (and not for the same course)
+        // Check if another course (with a different CID) has the same code
         pool.query(queries.getCourseByCode, [code], (error, codeResults) => {
             if (error) {
                 console.error('Error checking course code:', error);
                 return res.status(500).send("An error occurred while checking the course code.");
             }
-        
-            // Check if another course (not the one being updated) already has the same code
-            if (codeResults.rows.length > 0 && codeResults.rows[0].cid !== cid) {
+
+            // Only prevent update if a different course has the same code
+            if (codeResults.rows.length > 0 && codeResults.rows[0].CID !== cid) {
                 return res.status(409).send('A course with this code already exists.');
             }
-        
+
             // Proceed with updating the course
-            const { query, values } = queries.generateUpdateCourseQuery('courses', updates);
+            const { query, values } = queries.generateUpdateCourseQuery('courses', { name, code, description });
             values.push(cid); 
-        
+
             pool.query(query, values, (error, results) => {
                 if (error) {
                     console.error('Error updating course:', error);
@@ -527,9 +525,9 @@ const updateCourse = (req, res) => {
                 res.status(200).send("Course updated successfully.");
             });
         });
-        
     });
 };
+
 
 const removeCourse = (req, res) => {
     const cid = parseInt(req.params.cid);
