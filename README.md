@@ -1,4 +1,4 @@
-# Student portal Project
+# Student Portal Project
 
 ## Description
 This project is a RESTful API built with Node.js, Express, and PostgreSQL, providing endpoints for managing users, doctors, courses, and schedules. It uses **Knex.js** as a query builder for interacting with the database and includes features for user authentication, data validation, file uploads, and schedule management. The API supports functionalities such as user creation, course management, and schedule conflict detection.
@@ -49,7 +49,7 @@ Ensure that you have the following installed on your machine:
    - DB_PASSWORD=your-db-password
    - DB_NAME=your-db-name
    - DB_PORT=your-db-port
-   - JWT_SECRET=your-jwt-secret
+   - JWT_SECRET=92bcfd9c29b765bb0c2d3d4a184e624e6d3df27bfb91e7e821ed82b1e04b44ef
 
 3. **Start the server**:
    ```bash
