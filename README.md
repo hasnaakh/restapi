@@ -1,5 +1,7 @@
 # Student Portal Project
 
+🖥️ The frontend for this backend can be found here: [Student Portal](https://github.com/Zainab-Mohammed/student-portal)
+
 ## Description
 This project is a RESTful API built with Node.js, Express, and PostgreSQL, providing endpoints for managing users, doctors, courses, and schedules. It uses **Knex.js** as a query builder for interacting with the database and includes features for user authentication, data validation, file uploads, and schedule management. The API supports functionalities such as user creation, course management, and schedule conflict detection.
 
